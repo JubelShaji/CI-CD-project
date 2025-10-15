@@ -1,4 +1,4 @@
-# Complete YouTube Script: Kubernetes CI/CD Pipeline Using Jenkins for MERN Stack Beginners
+#  Kubernetes CI/CD Pipeline Using Jenkins for MERN Stack Beginners
 We're building a complete CI/CD pipeline using Jenkins and Kubernetes that will automate everything from code commit to live deployment. And I'm going to show you every single step, even if you're a complete beginner.
 
 **[What We'll Cover]**
@@ -113,7 +113,7 @@ EOF
 
 echo "Kubeconfig created: jenkins-kubeconfig.yaml"
 
-## STEP 3: Create Your MERN Application[Checkout my git repo:https://github.com/CodeEaseWithAnu/CI-CD-Jenkins-Pipeline]
+## STEP 3: Create Your MERN Application[Checkout my git repo:https://github.com/softencloud/CI-CD-Jenkins-Pipeline]
 
 ### Project Structure
 
