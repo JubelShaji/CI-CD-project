@@ -2,17 +2,15 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = 'your-docker-registry'
+        DOCKER_REGISTRY = 'jubelshaji'
         IMAGE_TAG = "${BUILD_NUMBER}"
-        KUBERNETES_SERVER = 'https://kubernetes.default.svc'  
     }
 
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'your-git-repository-url',
-                    credentialsId: 'github-credentials'
+                    url: 'https://github.com/JubelShaji/CI-CD-project.git'
             }
         }
 
@@ -40,10 +38,10 @@ pipeline {
                     steps {
                         script {
                             dir('backend') {
-                                def backendImage = docker.build("${DOCKER_REGISTRY}/mern-backend:${IMAGE_TAG}")
+                                def backendImage = docker.build("${DOCKER_REGISTRY}/jenkin-docker:backend-${IMAGE_TAG}")
                                 docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
                                     backendImage.push()
-                                    backendImage.push('latest')
+                                    backendImage.push('backend-latest')
                                 }
                             }
                         }
@@ -53,10 +51,10 @@ pipeline {
                     steps {
                         script {
                             dir('frontend') {
-                                def frontendImage = docker.build("${DOCKER_REGISTRY}/mern-frontend:${IMAGE_TAG}")
+                                def frontendImage = docker.build("${DOCKER_REGISTRY}/jenkin-docker:frontend-${IMAGE_TAG}")
                                 docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
                                     frontendImage.push()
-                                    frontendImage.push('latest')
+                                    frontendImage.push('frontend-latest')
                                 }
                             }
                         }
@@ -64,38 +62,14 @@ pipeline {
                 }
             }
         }
-
-        stage('Verify Kubernetes Connectivity') {
+        stage('Deployment') {
             steps {
                 script {
-                    echo '🔍 Verifying Kubernetes API (In-cluster ServiceAccount)...'
-                    sh 'kubectl cluster-info'
-                    sh 'kubectl get nodes -o wide'
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    sh """
-                        sed -i 's|your-registry/mern-backend:latest|${DOCKER_REGISTRY}/mern-backend:${IMAGE_TAG}|g' k8s/backend-deployment.yaml
-                        sed -i 's|your-registry/mern-frontend:latest|${DOCKER_REGISTRY}/mern-frontend:${IMAGE_TAG}|g' k8s/frontend-deployment.yaml
-                    """
-                    sh 'kubectl apply -f k8s/'
-                    sh 'kubectl rollout status deployment/backend-deployment'
-                    sh 'kubectl rollout status deployment/frontend-deployment'
-                }
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                script {
-                    sh 'kubectl get pods -o wide'
-                    sh 'kubectl get services'
-                    sh 'kubectl wait --for=condition=ready pod -l app=backend --timeout=300s'
-                    sh 'kubectl wait --for=condition=ready pod -l app=frontend --timeout=300s'
+                     sh """
+                        sed -i 's|jubelshaji/jenkin-docker:backend-latest|${DOCKER_REGISTRY}/jenkin-docker:backend-${IMAGE_TAG}|g' docker-compose.yaml
+                        sed -i 's|jubelshaji/jenkin-docker:frontend-latest|${DOCKER_REGISTRY}/jenkin-docker:frontend-${IMAGE_TAG}|g' docker-compose.yaml
+                     """
+                     sh 'docker compose up'
                 }
             }
         }
