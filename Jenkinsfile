@@ -69,7 +69,9 @@ pipeline {
                         sed -i 's|jubelshaji/jenkin-docker:backend-latest|${DOCKER_REGISTRY}/jenkin-docker:backend-${IMAGE_TAG}|g' docker-compose.yaml
                         sed -i 's|jubelshaji/jenkin-docker:frontend-latest|${DOCKER_REGISTRY}/jenkin-docker:frontend-${IMAGE_TAG}|g' docker-compose.yaml
                      """
-                     sh 'docker compose up'
+                     sh 'docker compose stop mongo backend frontend'
+                     sh 'docker compose rm -f mongo backend frontend'
+                     sh 'docker compose up -d mongo backend frontend'
                 }
             }
         }
