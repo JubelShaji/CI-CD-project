@@ -6,7 +6,7 @@ USER root
 RUN apt-get update && \
     apt-get install -y curl gnupg2 ca-certificates apt-transport-https && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs docker.io && \
+    apt-get install -y nodejs docker.io docker-compose-plugin && \
     npm install -g npm@latest && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
