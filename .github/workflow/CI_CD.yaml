@@ -1,0 +1,81 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  DOCKER_REGISTRY: jubelshaji
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install & test backend
+        working-directory: backend
+        run: |
+          npm install
+          npm test
+
+      - name: Install & test frontend
+        working-directory: frontend
+        run: |
+          npm install
+          npm test -- --coverage --watchAll=false
+
+      - name: Build Docker images
+        run: |
+          docker build -t $DOCKER_REGISTRY/jenkin-docker:backend-${{ github.run_number }} backend
+          docker build -t $DOCKER_REGISTRY/jenkin-docker:frontend-${{ github.run_number }} frontend
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Push Docker images
+        run: |
+          docker push $DOCKER_REGISTRY/jenkin-docker:backend-${{ github.run_number }}
+          docker push $DOCKER_REGISTRY/jenkin-docker:frontend-${{ github.run_number }}
+          docker tag $DOCKER_REGISTRY/jenkin-docker:backend-${{ github.run_number }} $DOCKER_REGISTRY/jenkin-docker:backend-latest
+          docker tag $DOCKER_REGISTRY/jenkin-docker:frontend-${{ github.run_number }} $DOCKER_REGISTRY/jenkin-docker:frontend-latest
+          docker push $DOCKER_REGISTRY/jenkin-docker:backend-latest
+          docker push $DOCKER_REGISTRY/jenkin-docker:frontend-latest
+
+      - name: Deploy to remote server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "docker-compose.yaml"
+          target: "/home/${{ secrets.SERVER_USER }}/app"
+              
+      - name: Run deployment on remote server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+              cd /home/${{ secrets.SERVER_USER }}/app
+              docker compose stop mongo backend frontend || true
+              docker compose rm -f mongo backend frontend || true
+              docker compose up -d mongo backend frontend
+
+      # --- Cleanup ---
+      - name: Clean up Docker
+        if: always()
+        run: docker system prune -f
