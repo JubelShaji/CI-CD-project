@@ -71,6 +71,8 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
               cd /home/${{ secrets.SERVER_USER }}/app
+              sed -i 's|jubelshaji/jenkin-docker:backend-latest|jubelshaji/jenkin-docker:backend-${{ github.run_number }}|g' docker-compose.yaml
+              sed -i 's|jubelshaji/jenkin-docker:frontend-latest|jubelshaji/jenkin-docker:frontend-${{ github.run_number }}|g' docker-compose.yaml
               sudo docker compose stop mongo backend frontend || true
               sudo docker compose rm -f mongo backend frontend || true
               sudo docker compose up -d mongo backend frontend
