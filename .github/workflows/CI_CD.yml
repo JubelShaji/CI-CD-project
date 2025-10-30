@@ -71,9 +71,9 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
               cd /home/${{ secrets.SERVER_USER }}/app
-              docker compose stop mongo backend frontend || true
-              docker compose rm -f mongo backend frontend || true
-              docker compose up -d mongo backend frontend
+              sudo docker compose stop mongo backend frontend || true
+              sudo docker compose rm -f mongo backend frontend || true
+              sudo docker compose up -d mongo backend frontend
 
       # --- Cleanup ---
       - name: Clean up Docker
