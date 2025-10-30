@@ -41,6 +41,7 @@ function App() {
   return (
     <div className="App">
       <h1>User Details</h1>
+      <h2>Type in your Name and Email to add</h2>
       <form onSubmit={addUser}>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" required />
         <br></br>
